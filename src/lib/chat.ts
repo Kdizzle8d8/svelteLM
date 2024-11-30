@@ -3,7 +3,8 @@ import OpenAI from "openai";
 dotenv.config({ path: "../../.env" });
 
 const apiKey = process.env.OPENAI_API_KEY;
-if (!apiKey) throw new Error("OPENAI_API_KEY is not set in the environment variables");
+if (!apiKey)
+  throw new Error("OPENAI_API_KEY is not set in the environment variables");
 
 const client = new OpenAI({ apiKey });
 
@@ -11,7 +12,7 @@ const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
   { role: "system", content: "You are a helpful assistant", name: "system" },
 ];
 
-class Conversation {
+export class Conversation {
   private messages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
   private model: string = "gpt-4o";
   private temperature: number = 0;
@@ -24,7 +25,7 @@ class Conversation {
 
   async chat(message: string) {
     this.messages.push({ role: "user", content: message });
-    let loops=0;
+    let loops = 0;
     try {
       while (true) {
         loops++;
@@ -49,23 +50,28 @@ class Conversation {
         }
 
         // If there are tool calls, handle them
-        for (const { type, function: func, id } of assistantMessage.tool_calls) {
-          if (type === 'function') {
+        for (const {
+          type,
+          function: func,
+          id,
+        } of assistantMessage.tool_calls) {
+          if (type === "function") {
             const targetFunction = this.tsFunctions[func.name];
-            if (!targetFunction) throw new Error(`Function ${func.name} not found`);
-            
+            if (!targetFunction)
+              throw new Error(`Function ${func.name} not found`);
+
             const functionResult = targetFunction(JSON.parse(func.arguments));
             this.messages.push({
               role: "tool",
               content: JSON.stringify(functionResult),
-              tool_call_id: id
+              tool_call_id: id,
             });
           }
         }
       }
     } catch (error) {
       console.error("Error in chat completion:", error);
-      console.log(loops)
+      console.log(loops);
       throw error;
     }
   }
@@ -96,6 +102,8 @@ convo.aiTools = [
   },
 ];
 
-convo.chat("What is the sum of 9 and 10 + the sum of 11 and 12?").then((res) => {
-  console.log(res);
-});
+convo
+  .chat("What is the sum of 9 and 10 + the sum of 11 and 12?")
+  .then((res) => {
+    console.log(res);
+  });
